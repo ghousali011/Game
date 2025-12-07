@@ -11,6 +11,11 @@ void Menu();
 void printMaze();
 void Gameover();
 
+// === pause function ===
+bool pauseMenu();
+void saveRegion(int x, int y, int width, int height);
+void restoreRegion(int x, int y, int width, int height);
+
 // === coin functions ===
 void movecoin();
 bool coinCollision();
@@ -41,6 +46,7 @@ void showCursor();
 void setCursorSize(int size);
 
 // === global variables ===
+CHAR_INFO savedBuffer[5][25];
 int width, height, px, py, x, y; // p for player --- e for enemy --- width/height of consle
 string headingcolor = "06", enemycolor = "03", coincolor = "02", playercolor = "05";
 // --------- enemy variables ----------
@@ -402,25 +408,37 @@ void move()
 
     while (true)
     {
-        if (GetAsyncKeyState(VK_RIGHT) && px < width - 15)
+        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
+        {
+            while (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {}
+            bool wantExit = pauseMenu();
+            if (wantExit)
+            {
+                setcolor ("04");
+                Gameover();
+                setcolor("07");
+                exit(0);
+            }
+        }
+        if ((GetAsyncKeyState(VK_RIGHT) & 0x8000 )&& px < width - 15)
         {
             erasePlayer();
             px++;
             printPlayer();
         }
-        else if (GetAsyncKeyState(VK_LEFT) && px > 1)
+        else if ((GetAsyncKeyState(VK_LEFT) & 0x8000) && px > 1)
         {
             erasePlayer();
             px--;
             printPlayer();
         }
-        else if (GetAsyncKeyState(VK_UP) && py > 12)
+        else if ((GetAsyncKeyState(VK_UP) & 0x8000) && py > 12)
         {
             erasePlayer();
             py--;
             printPlayer();
         }
-        else if (GetAsyncKeyState(VK_DOWN) && py < height + 2)
+        else if ((GetAsyncKeyState(VK_DOWN) & 0x8000) && py < height + 2)
         {
             erasePlayer();
             py++;
@@ -556,6 +574,80 @@ bool coinCollision()
 
     return false;
 }
+// ============================================= pause game =====================================================================================
+bool pauseMenu()
+{
+    int bx = width / 2 - 10;
+    int by = height / 2 - 2;
+    int bw = 22;
+    int bh = 5;
+    saveRegion(bx, by, bw, bh);
+
+    setcolor("0E");
+    gotoxy(bx, by);
+    cout << "====================";
+    gotoxy(bx, by + 1);
+    cout << "      GAME PAUSED    ";
+    gotoxy(bx, by + 2);
+    cout << "  ENTER = Continue   ";
+    gotoxy(bx, by + 3);
+    cout << "  ESC   = Exit Game  ";
+    gotoxy(bx, by + 4);
+    cout << "====================";
+    while (true)
+    {
+        if (GetAsyncKeyState(VK_RETURN) & 0x8000)
+        {
+            while (GetAsyncKeyState(VK_RETURN) & 0x8000) {}
+            restoreRegion(bx, by, bw, bh);  
+            return false;
+        }
+        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
+        {
+            while (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {}
+            for (int i = 0; i < 5; i++)
+            {
+                gotoxy(bx, by + i);
+                cout << "                    ";
+            }
+            return true;
+        }
+        Sleep(50);
+    }
+}
+void saveRegion(int x, int y, int width, int height)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    SMALL_RECT readArea = { (SHORT)x, (SHORT)y, (SHORT)(x + width - 1), (SHORT)(y + height - 1) };
+    COORD bufferSize = { (SHORT)width, (SHORT)height };
+    COORD bufferCoord = { 0, 0 };
+
+    ReadConsoleOutput(
+        h,
+        (CHAR_INFO*)savedBuffer,  // store into buffer
+        bufferSize,
+        bufferCoord,
+        &readArea
+    );
+}
+void restoreRegion(int x, int y, int width, int height)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    SMALL_RECT writeArea = { (SHORT)x, (SHORT)y, (SHORT)(x + width - 1), (SHORT)(y + height - 1) };
+    COORD bufferSize = { (SHORT)width, (SHORT)height };
+    COORD bufferCoord = { 0, 0 };
+
+    WriteConsoleOutput(
+        h,
+        (CHAR_INFO*)savedBuffer,
+        bufferSize,
+        bufferCoord,
+        &writeArea
+    );
+}
+
 // ============================================== Default functions =============================================================================
 // ------------ setting color -----------------
 void setcolor(string hexcolor)
