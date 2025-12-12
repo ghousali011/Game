@@ -23,6 +23,7 @@ bool coinCollision();
 // === Player Functions ===
 void printPlayer();
 void erasePlayer();
+bool playerCollision(int ex, int ey);
 
 // === Enemy Functions ===
 void move_enemy();
@@ -47,17 +48,11 @@ void setCursorSize(int size);
 
 // === global variables ===
 CHAR_INFO savedBuffer[5][25];
-int width, height, px, py, x, y; // p for player --- e for enemy --- width/height of consle
+int width, height, px, py, x, y, health = 100; // p for player --- e for enemy --- width/height of consle
 string headingcolor = "06", enemycolor = "03", coincolor = "02", playercolor = "05";
 // --------- enemy variables ----------
-int ex1 = 1, ey1 = 4;
-int ex2 = 1, ey2 = 8;
-int ex3 = 1, ey3 = 12;
-bool enemy1moveright = true;
-bool enemy2moveright = false;
-bool enemy3moveright = true;
-bool enemy2movedown = false;
-bool enemy3movedown = true;
+int ex1 = 1, ey1 = 4, ex2 = 0, ey2 = 0, ex3 = 0, ey3 = 0;
+bool enemy1moveright = true, e2first = true, e3first = true, enemy2moveright = false, enemy3moveright = true, enemy2movedown = false, enemy3movedown = true;
 // -------- coin veriables -------------
 int cx, cy = 4;
 int score = 0;
@@ -148,7 +143,7 @@ void printMaze()
     gotoxy(width - 15, 2);
     cout << "Level : 1";
     gotoxy(3, 1);
-    cout << "Health : 100";
+    cout << "Health : " << health;
 }
 
 void Menu()
@@ -231,6 +226,11 @@ void moveEnemy1()
 
 void printEnemy2()
 {
+    if (e2first == true)
+    {
+        ex2 = 1, ey2 = 8;
+        e2first = false;
+    }
     gotoxy(ex2, ey2 + 1);
     cout << "(~~~~)";
     gotoxy(ex2, ey2 + 2);
@@ -299,6 +299,11 @@ void moveEnemy2()
 
 void printEnemy3()
 {
+    if (e3first == true)
+    {
+        ex3 = 1, ey3 = 12;
+        e3first = false;
+    }
     gotoxy(ex3, ey3 + 1);
     cout << "(~~~~)";
     gotoxy(ex3, ey3 + 2);
@@ -380,10 +385,54 @@ void printPlayer()
     cout << "    ||||     ";
     setcolor(enemycolor);
 }
+// --------------- checking player collision -------------------
+bool playerCollision(int ex, int ey)
+{
+    int playerLeft = px + 1;
+    int playerRight = px + 12;
+    int playerTop = py - 8;
+    int playerBottom = py - 3;
+
+    int enemyLeft = ex;
+    int enemyRight = ex + 7;
+    int enemyTop = ey + 1;
+    int enemyBottom = ey + 4;
+
+    if (playerLeft < enemyRight && playerRight > enemyLeft && playerTop < enemyBottom && playerBottom > enemyTop)
+    {
+        return true;
+    }
+    return false;
+}
+
+void respawnPlayerWithDelay(int delayMs)
+{
+    erasePlayer();
+    px = width / 2;
+    py = height + 1;
+
+    DWORD start = GetTickCount();
+    while (GetTickCount() - start < delayMs)
+    {
+        moveEnemy1();
+        if (score > 10)
+            moveEnemy2();
+        if (score > 20)
+            moveEnemy3();
+        movecoin();
+
+        if (((GetTickCount() / 200) % 2) == 0)
+            printPlayer();
+        else
+            erasePlayer();
+
+        Sleep(300);
+    }
+    printPlayer();
+}
 
 void erasePlayer()
 {
-
     gotoxy(px + 1, py - 8);
     cout << "            ";
     gotoxy(px + 1, py - 7);
@@ -410,17 +459,19 @@ void move()
     {
         if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
         {
-            while (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {}
+            while (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
+            {
+            }
             bool wantExit = pauseMenu();
             if (wantExit)
             {
-                setcolor ("04");
+                setcolor("04");
                 Gameover();
                 setcolor("07");
                 exit(0);
             }
         }
-        if ((GetAsyncKeyState(VK_RIGHT) & 0x8000 )&& px < width - 15)
+        if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) && px < width - 15)
         {
             erasePlayer();
             px++;
@@ -447,6 +498,21 @@ void move()
         if (GetTickCount() - lastEnemyMove >= enemyDelay)
         {
             move_enemy();
+            if (playerCollision(ex1, ey1) || playerCollision(ex2, ey2) || playerCollision(ex3, ey3))
+            {
+                setcolor(headingcolor);
+                health -= 20;
+                gotoxy(12, 1);
+                cout << health << " ";
+                if (health == 0)
+                {
+                    setcolor("04");
+                    Gameover();
+                    setcolor("07");
+                    exit(0);
+                }
+                respawnPlayerWithDelay(3000);
+            }
             movecoin();
             lastEnemyMove = GetTickCount();
         }
@@ -598,13 +664,17 @@ bool pauseMenu()
     {
         if (GetAsyncKeyState(VK_RETURN) & 0x8000)
         {
-            while (GetAsyncKeyState(VK_RETURN) & 0x8000) {}
+            while (GetAsyncKeyState(VK_RETURN) & 0x8000)
+            {
+            }
             restoreRegion(bx, by, bw, bh);
             return false;
         }
         if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
         {
-            while (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {}
+            while (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
+            {
+            }
             for (int i = 0; i < 5; i++)
             {
                 gotoxy(bx, by + i);
@@ -619,33 +689,31 @@ void saveRegion(int x, int y, int width, int height)
 {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    SMALL_RECT readArea = { (SHORT)x, (SHORT)y, (SHORT)(x + width - 1), (SHORT)(y + height - 1) };
-    COORD bufferSize = { (SHORT)width, (SHORT)height };
-    COORD bufferCoord = { 0, 0 };
+    SMALL_RECT readArea = {(SHORT)x, (SHORT)y, (SHORT)(x + width - 1), (SHORT)(y + height - 1)};
+    COORD bufferSize = {(SHORT)width, (SHORT)height};
+    COORD bufferCoord = {0, 0};
 
     ReadConsoleOutput(
         h,
-        (CHAR_INFO*)savedBuffer,  // store into buffer
+        (CHAR_INFO *)savedBuffer, // store into buffer
         bufferSize,
         bufferCoord,
-        &readArea
-    );
+        &readArea);
 }
 void restoreRegion(int x, int y, int width, int height)
 {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    SMALL_RECT writeArea = { (SHORT)x, (SHORT)y, (SHORT)(x + width - 1), (SHORT)(y + height - 1) };
-    COORD bufferSize = { (SHORT)width, (SHORT)height };
-    COORD bufferCoord = { 0, 0 };
+    SMALL_RECT writeArea = {(SHORT)x, (SHORT)y, (SHORT)(x + width - 1), (SHORT)(y + height - 1)};
+    COORD bufferSize = {(SHORT)width, (SHORT)height};
+    COORD bufferCoord = {0, 0};
 
     WriteConsoleOutput(
         h,
-        (CHAR_INFO*)savedBuffer,
+        (CHAR_INFO *)savedBuffer,
         bufferSize,
         bufferCoord,
-        &writeArea
-    );
+        &writeArea);
 }
 
 // ============================================== Default functions =============================================================================
