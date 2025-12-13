@@ -24,9 +24,12 @@ bool coinCollision();
 void printPlayer();
 void erasePlayer();
 bool playerCollision(int ex, int ey);
+void handlePlayerMovementSlow(DWORD &lastMoveTime, int delay);
 
 // === Enemy Functions ===
 void move_enemy();
+void printEnemy(int ex, int ey);
+void EraseEnemy(int ex, int ey);
 void printEnemy1();
 void EraseEnemy1();
 void moveEnemy1();
@@ -52,7 +55,7 @@ int width, height, px, py, x, y, health = 100; // p for player --- e for enemy -
 string headingcolor = "06", enemycolor = "03", coincolor = "02", playercolor = "05";
 // --------- enemy variables ----------
 int ex1 = 1, ey1 = 4, ex2 = 0, ey2 = 0, ex3 = 0, ey3 = 0;
-bool enemy1moveright = true, e2first = true, e3first = true, enemy2moveright = false, enemy3moveright = true, enemy2movedown = false, enemy3movedown = true;
+bool enemy1moveright = true, e2first = true, e3first = true, enemy2moveright = false, enemy3moveright = true, enemy2movedown = false, enemy3movedown = true, playerInvincible = false;;
 // -------- coin veriables -------------
 int cx, cy = 4;
 int score = 0;
@@ -72,11 +75,11 @@ int main()
     printMaze();
     Menu();
     move(); // enemy is also moving inside move
-
-    // Gameover();
     return 0;
 }
 
+// ============================================================ header functions =================================================================================================
+// --------------- maze printing -------------------
 void printMaze()
 {
     system("cls");
@@ -145,7 +148,7 @@ void printMaze()
     gotoxy(3, 1);
     cout << "Health : " << health;
 }
-
+// ---------------- menu pringting when game starts --------------------
 void Menu()
 {
     gotoxy(width / 2 - 16, height / 2);
@@ -155,23 +158,7 @@ void Menu()
     cout << "                              ";
 }
 
-int random(int lower, int upper)
-{
-    unsigned seed = chrono::steady_clock::now().time_since_epoch().count();
-    mt19937 gen(seed);
-    uniform_int_distribution<> dist(lower, upper);
-    int randomNum = dist(gen);
-    return randomNum;
-}
-
-void getconsolemeasures(int &width, int &height)
-{
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-}
-
+// ------------- game over printing -------------------------
 void Gameover()
 {
     gotoxy(width / 2 - 6, height / 2 - 1);
@@ -180,23 +167,26 @@ void Gameover()
     system("cls");
 }
 
-void printEnemy1()
+// ======================================(++++++++++++++++++++++++++++ Enemy handling ++++++++++++++++++++++++++++++++++++)=======================================================
+// ===================== Enemy 1 handlilng =======================================
+// -------------- printing enemy 1 -------------------
+void printEnemy(int ex, int ey)
 {
-    gotoxy(ex1, ey1 + 1);
+    gotoxy(ex, ey + 1);
     cout << "(~~~~)";
-    gotoxy(ex1, ey1 + 2);
+    gotoxy(ex, ey + 2);
     cout << "|=||=|";
-    gotoxy(ex1, ey1 + 3);
+    gotoxy(ex, ey + 3);
     cout << "  \\/  ";
 }
 
-void EraseEnemy1()
+void EraseEnemy(int ex, int ey)
 {
-    gotoxy(ex1, ey1 + 1);
+    gotoxy(ex, ey + 1);
     cout << "      ";
-    gotoxy(ex1, ey1 + 2);
+    gotoxy(ex, ey + 2);
     cout << "       ";
-    gotoxy(ex1, ey1 + 3);
+    gotoxy(ex, ey + 3);
     cout << "       ";
 }
 
@@ -204,9 +194,9 @@ void moveEnemy1()
 {
     if (enemy1moveright == true)
     {
-        EraseEnemy1();
+        EraseEnemy(ex1, ey1);
         ex1++;
-        printEnemy1();
+        printEnemy(ex1, ey1);
         if (ex1 == width - 8)
         {
             enemy1moveright = false;
@@ -214,9 +204,9 @@ void moveEnemy1()
     }
     else
     {
-        EraseEnemy1();
+        EraseEnemy(ex1, ey1);
         ex1--;
-        printEnemy1();
+        printEnemy(ex1, ey1);
         if (ex1 == 1)
         {
             enemy1moveright = true;
@@ -224,36 +214,23 @@ void moveEnemy1()
     }
 }
 
-void printEnemy2()
+// ------------ initial settings for first time printing enemy 2 ------------------
+void spawnEnemy2()
 {
-    if (e2first == true)
-    {
-        ex2 = 1, ey2 = 8;
-        e2first = false;
-    }
-    gotoxy(ex2, ey2 + 1);
-    cout << "(~~~~)";
-    gotoxy(ex2, ey2 + 2);
-    cout << "|=||=|";
-    gotoxy(ex2, ey2 + 3);
-    cout << "  \\/";
+    ex2 = 1;
+    ey2 = 8;
+    enemy2movedown = true;
+    enemy2moveright = true;
+    e2first = false;
 }
 
-void EraseEnemy2()
-{
-    gotoxy(ex2, ey2 + 1);
-    cout << "      ";
-    gotoxy(ex2, ey2 + 2);
-    cout << "       ";
-    gotoxy(ex2, ey2 + 3);
-    cout << "       ";
-}
-
+// -------------------- moving enemy 2 ----------------------
 void moveEnemy2()
 {
+    if (e2first) spawnEnemy2();
     if (enemy2movedown == true)
     {
-        EraseEnemy2();
+        EraseEnemy(ex2, ey2);
         ey2++;
         if (enemy2moveright == true)
         {
@@ -263,7 +240,7 @@ void moveEnemy2()
         {
             ex2--;
         }
-        printEnemy2();
+        printEnemy(ex2, ey2);
         if (ey2 == height - 5)
         {
             enemy2movedown = false;
@@ -271,7 +248,7 @@ void moveEnemy2()
     }
     else
     {
-        EraseEnemy2();
+        EraseEnemy(ex2, ey2);
         ey2--;
         if (enemy2moveright == true)
         {
@@ -281,7 +258,7 @@ void moveEnemy2()
         {
             ex2--;
         }
-        printEnemy2();
+        printEnemy(ex2, ey2);
         if (ey2 == 4)
         {
             enemy2movedown = true;
@@ -297,36 +274,18 @@ void moveEnemy2()
     }
 }
 
-void printEnemy3()
-{
-    if (e3first == true)
-    {
-        ex3 = 1, ey3 = 12;
-        e3first = false;
-    }
-    gotoxy(ex3, ey3 + 1);
-    cout << "(~~~~)";
-    gotoxy(ex3, ey3 + 2);
-    cout << "|=||=|";
-    gotoxy(ex3, ey3 + 3);
-    cout << "  \\/";
-}
-
-void EraseEnemy3()
-{
-    gotoxy(ex3, ey3 + 1);
-    cout << "      ";
-    gotoxy(ex3, ey3 + 2);
-    cout << "       ";
-    gotoxy(ex3, ey3 + 3);
-    cout << "       ";
-}
-
+// ----------------- moving enemy 3 -------------------
 void moveEnemy3()
 {
+    if (e3first)
+    {
+        ex3 = 1;
+        ey3 = 12;
+        e3first = false;
+    }
     if (enemy3movedown == true)
     {
-        EraseEnemy3();
+        EraseEnemy(ex3, ey3);
         ey3++;
         if (ey3 == height - 5)
         {
@@ -340,11 +299,11 @@ void moveEnemy3()
                 ex3--;
             }
         }
-        printEnemy3();
+        printEnemy(ex3, ey3);
     }
     else
     {
-        EraseEnemy3();
+        EraseEnemy(ex3, ey3);
         ey3--;
         if (ey3 == 4)
         {
@@ -358,7 +317,7 @@ void moveEnemy3()
                 ex3--;
             }
         }
-        printEnemy3();
+        printEnemy(ex3, ey3);
     }
     if (ex3 == width - 8)
     {
@@ -369,7 +328,35 @@ void moveEnemy3()
         enemy3movedown = false;
     }
 }
-
+// --------------- moving all enemies in one function -----------------------
+void move_enemy()
+{
+    moveEnemy1();
+    if (score > 10)
+    {
+        moveEnemy2();
+    }
+    if (score > 20)
+    {
+        moveEnemy3();
+    }
+    if (score == 21)
+    {
+        gotoxy(width - 7, 2);
+        setcolor(headingcolor);
+        cout << "3";
+        setcolor(enemycolor);
+    }
+    else if (score == 11)
+    {
+        gotoxy(width - 7, 2);
+        setcolor(headingcolor);
+        cout << "2";
+        setcolor(enemycolor);
+    }
+}
+// =================================(++++++++++++++++++++ Player functions ++++++++++++++++++++++++)===========================================
+// ----------- printing player -------------
 void printPlayer()
 {
     setcolor(playercolor);
@@ -385,7 +372,21 @@ void printPlayer()
     cout << "    ||||     ";
     setcolor(enemycolor);
 }
-// --------------- checking player collision -------------------
+// ------------------ erasing player ---------------------
+void erasePlayer()
+{
+    gotoxy(px + 1, py - 8);
+    cout << "            ";
+    gotoxy(px + 1, py - 7);
+    cout << "            ";
+    gotoxy(px + 1, py - 6);
+    cout << "            ";
+    gotoxy(px + 1, py - 5);
+    cout << "            ";
+    gotoxy(px + 1, py - 4);
+    cout << "            ";
+}
+// --------------- checking player collision with enemy -------------------
 bool playerCollision(int ex, int ey)
 {
     int playerLeft = px + 1;
@@ -404,48 +405,72 @@ bool playerCollision(int ex, int ey)
     }
     return false;
 }
-
+// ---------------- respawn player afer collision with enemy -------------
 void respawnPlayerWithDelay(int delayMs)
 {
+    playerInvincible = true;
+
     erasePlayer();
     px = width / 2;
     py = height + 1;
 
     DWORD start = GetTickCount();
+    DWORD lastMoveTime = GetTickCount();
+    DWORD moveDelay = 5;
+
     while (GetTickCount() - start < delayMs)
     {
         moveEnemy1();
-        if (score > 10)
-            moveEnemy2();
-        if (score > 20)
-            moveEnemy3();
+        if (score > 10) moveEnemy2();
+        if (score > 20) moveEnemy3();
         movecoin();
+        handlePlayerMovementSlow(lastMoveTime, moveDelay);
 
         if (((GetTickCount() / 200) % 2) == 0)
             printPlayer();
         else
             erasePlayer();
-
-        Sleep(300);
+        Sleep(150);
     }
+    playerInvincible = false;
     printPlayer();
 }
 
-void erasePlayer()
+// ------------------- handle movement of player in respawn in slow motion with blinking -------------------
+void handlePlayerMovementSlow(DWORD &lastMoveTime, int delay)
 {
-    gotoxy(px + 1, py - 8);
-    cout << "            ";
-    gotoxy(px + 1, py - 7);
-    cout << "            ";
-    gotoxy(px + 1, py - 6);
-    cout << "            ";
-    gotoxy(px + 1, py - 5);
-    cout << "            ";
-    gotoxy(px + 1, py - 4);
-    cout << "            ";
+    if (GetTickCount() - lastMoveTime < delay)
+        return;
+    bool moved = false;
+    if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) && px < width - 15)
+    {
+        erasePlayer();
+        px++;
+        moved = true;
+    }
+    else if ((GetAsyncKeyState(VK_LEFT) & 0x8000) && px > 1)
+    {
+        erasePlayer();
+        px--;
+        moved = true;
+    }
+    else if ((GetAsyncKeyState(VK_UP) & 0x8000) && py > 12)
+    {
+        erasePlayer();
+        py--;
+        moved = true;
+    }
+    else if ((GetAsyncKeyState(VK_DOWN) & 0x8000) && py < height + 2)
+    {
+        erasePlayer();
+        py++;
+        moved = true;
+    }
+    if (moved)
+        lastMoveTime = GetTickCount();
 }
 
-// ============================================================ over all movement ============================================================
+// ======================================(+++++++++++++++++++++ over all movement ++++++++++++++++++++++)============================================================
 void move()
 {
     px = width / 2;
@@ -516,36 +541,11 @@ void move()
             movecoin();
             lastEnemyMove = GetTickCount();
         }
-        Sleep(10);
+        Sleep(20);
     }
 }
 
-void move_enemy()
-{
-    moveEnemy1();
-    if (score > 10)
-    {
-        moveEnemy2();
-    }
-    if (score > 20)
-    {
-        moveEnemy3();
-    }
-    if (score == 21)
-    {
-        gotoxy(width - 7, 2);
-        setcolor(headingcolor);
-        cout << "3";
-        setcolor(enemycolor);
-    }
-    else if (score == 11)
-    {
-        gotoxy(width - 7, 2);
-        setcolor(headingcolor);
-        cout << "2";
-        setcolor(enemycolor);
-    }
-}
+
 // ======================================================= coin functions ============================================================
 void movecoin()
 {
@@ -685,6 +685,7 @@ bool pauseMenu()
         Sleep(50);
     }
 }
+// ------------- saving region of pause menu to print after continue ----------------
 void saveRegion(int x, int y, int width, int height)
 {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -700,6 +701,7 @@ void saveRegion(int x, int y, int width, int height)
         bufferCoord,
         &readArea);
 }
+// ---------------- again printing saved region after continuing game ----------------
 void restoreRegion(int x, int y, int width, int height)
 {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -732,6 +734,24 @@ void gotoxy(int x, int y)
     coord.Y = y;
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
+// --------------------- getting random number -------------
+int random(int lower, int upper)
+{
+    unsigned seed = chrono::steady_clock::now().time_since_epoch().count();
+    mt19937 gen(seed);
+    uniform_int_distribution<> dist(lower, upper);
+    int randomNum = dist(gen);
+    return randomNum;
+}
+// ----------------- getting console measures ------------------------
+void getconsolemeasures(int &width, int &height)
+{
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+}
+
 // ------------------------------- cursor handling -------------------------------------------
 void hideCursor()
 {
