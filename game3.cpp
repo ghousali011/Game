@@ -25,6 +25,7 @@ bool coinCollision();
 void fire();
 void printBullet(int x, int y);
 void eraseBullet(int x, int y);
+bool bulletCollisionwithenemy(int ex, int ey, int x, int y);
 
 // === Player Functions ===
 void printPlayer();
@@ -36,14 +37,8 @@ void handlePlayerMovementSlow(DWORD &lastMoveTime, int delay);
 void move_enemy();
 void printEnemy(int ex, int ey);
 void EraseEnemy(int ex, int ey);
-void printEnemy1();
-void EraseEnemy1();
 void moveEnemy1();
-void printEnemy2();
-void EraseEnemy2();
 void moveEnemy2();
-void printEnemy3();
-void EraseEnemy3();
 void moveEnemy3();
 
 // === Default functoins ===
@@ -57,10 +52,11 @@ void setCursorSize(int size);
 
 // === global variables ===
 CHAR_INFO savedBuffer[5][25];
-int width, height, px, py, x, y, health = 100; // p for player --- e for enemy --- width/height of consle
+int width, height, px, py, x, y, health = 100, level = 1; // p for player --- e for enemy --- width/height of consle
 string headingcolor = "06", enemycolor = "03", coincolor = "02", playercolor = "05";
+bool level2reached = false, level3reached = false;
 // --------- enemy variables ----------
-int ex1 = 1, ey1 = 4, ex2 = 0, ey2 = 0, ex3 = 0, ey3 = 0, enemy1Health = 3, enemy2Health = 3, enemy3Health = 3;
+int ex1 = 1, ey1 = 4, ex2 = 0, ey2 = 0, ex3 = 0, ey3 = 0, enemy1Health = 5, enemy2Health = 5, enemy3Health = 5;
 bool enemy1moveright = true, e2first = true, e3first = true, enemy2moveright = false, enemy3moveright = true, enemy2movedown = false, enemy3movedown = true, playerInvincible = false;
 // -------- coin veriables -------------
 int cx, cy = 4, score = 0;
@@ -149,9 +145,9 @@ void printMaze()
     gotoxy(width / 2 - 7, 2);
     cout << "Space Xtrive";
     gotoxy(width - 15, 1);
-    cout << "Score : 0";
+    cout << "Score : " << score;
     gotoxy(width - 15, 2);
-    cout << "Level : 1";
+    cout << "Level : " << level;
     gotoxy(3, 1);
     cout << "Health : " << health;
 }
@@ -171,6 +167,7 @@ void Gameover()
     gotoxy(width / 2 - 6, height / 2 - 1);
     cout << "Game Over.";
     Sleep(1000);
+    system("07");
     system("cls");
 }
 
@@ -287,7 +284,7 @@ void moveEnemy3()
 {
     if (e3first)
     {
-        ex3 = 1;
+        ex3 = width / 2;
         ey3 = 12;
         e3first = false;
     }
@@ -339,29 +336,70 @@ void moveEnemy3()
 // --------------- moving all enemies in one function -----------------------
 void move_enemy()
 {
-    moveEnemy1();
-    if (score > 10)
+    if (enemy1Health <= 0 && enemy2Health <= 0 && enemy3Health <= 0)
     {
-        moveEnemy2();
+        system("cls");
+        setcolor("02");
+        printMaze();
+        setcolor("04");
+        gotoxy(width / 2 - 6, height / 2 - 1);
+        cout << "You win.";
+        Sleep(1000);
+        system("cls");
+        setcolor("07");
+        exit(0);
     }
-    if (score > 20)
+    else if (enemy1Health <= 0 && enemy2Health <= 0 && enemy3Health == 5 && level == 2)
     {
-        moveEnemy3();
+        level = 3;
     }
-    if (score == 21)
+    else if (enemy1Health <= 0 && enemy2Health == 5 && enemy3Health == 5 && level == 1)
     {
-        gotoxy(width - 7, 2);
-        setcolor(headingcolor);
-        cout << "3";
-        setcolor(enemycolor);
+        level = 2;
     }
-    else if (score == 11)
+    if (level == 1)
     {
-        gotoxy(width - 7, 2);
-        setcolor(headingcolor);
-        cout << "2";
-        setcolor(enemycolor);
+        moveEnemy1();
+        level2reached = true;
     }
+    else if (level == 2)
+    {
+        if (level2reached)
+        {
+            enemy1Health = 5;
+            ex1 = 1;
+            ey1 = 4;
+            level2reached = false;
+        }
+        if (enemy1Health > 0)
+            moveEnemy1();
+        if (enemy2Health > 0)
+            moveEnemy2();
+        level3reached = true;
+    }
+    if (level == 3)
+    {
+        if (level3reached)
+        {
+            enemy1Health = 5;
+            enemy2Health = 5;
+            ex1 = 1;
+            ey1 = 4;
+            enemy1moveright = true;
+            e2first = true;
+            level3reached = false;
+        }
+        if (enemy1Health > 0)
+            moveEnemy1();
+        if (enemy2Health > 0)
+            moveEnemy2();
+        if (enemy3Health > 0)
+            moveEnemy3();
+    }
+    gotoxy(width - 7, 2);
+    setcolor(headingcolor);
+    cout << level;
+    setcolor(enemycolor);
 }
 // =================================(++++++++++++++++++++ Player functions ++++++++++++++++++++++++)===========================================
 // ----------- printing player -------------
@@ -428,12 +466,9 @@ void respawnPlayerWithDelay(int delayMs)
 
     while (GetTickCount() - start < delayMs)
     {
-        moveEnemy1();
-        if (score > 10)
-            moveEnemy2();
-        if (score > 20)
-            moveEnemy3();
+        move_enemy();
         movecoin();
+        fire();
         handlePlayerMovementSlow(lastMoveTime, moveDelay);
 
         if (((GetTickCount() / 200) % 2) == 0)
@@ -581,6 +616,39 @@ void fire()
             continue;
         eraseBullet(bullets[0][i], bullets[1][i]);
         bullets[1][i]--;
+        if (bulletCollisionwithenemy(ex1, ey1, bullets[0][i], bullets[1][i]))
+        {
+            enemy1Health--;
+            bullets[1][i] = 4;
+            if (enemy1Health == 0)
+            {
+                EraseEnemy(ex1, ey1);
+                ex1 = 0;
+                ey1 = 0;
+            }
+        }
+        else if (bulletCollisionwithenemy(ex2, ey2, bullets[0][i], bullets[1][i]))
+        {
+            enemy2Health--;
+            bullets[1][i] = 4;
+            if (enemy2Health == 0)
+            {
+                EraseEnemy(ex2, ey2);
+                ex2 = 0;
+                ey2 = 0;
+            }
+        }
+        else if (bulletCollisionwithenemy(ex3, ey3, bullets[0][i], bullets[1][i]))
+        {
+            enemy3Health--;
+            bullets[1][i] = 4;
+            if (enemy3Health == 0)
+            {
+                EraseEnemy(ex3, ey3);
+                ex3 = 0;
+                ey3 = 0;
+            }
+        }
         if (bullets[1][i] <= 4)
         {
             for (int j = i; j < 99; j++)
@@ -596,16 +664,32 @@ void fire()
         printBullet(bullets[0][i], bullets[1][i]);
     }
 }
-
+// ---- print bullet ---------
 void printBullet(int x, int y)
 {
     gotoxy(x, y);
     cout << ".";
 }
+// ---------- erase bullet -----------
 void eraseBullet(int x, int y)
 {
     gotoxy(x, y);
     cout << " ";
+}
+
+// --------------- checking bullet collision with enemy -------------------
+bool bulletCollisionwithenemy(int ex, int ey, int x, int y)
+{
+    int enemyLeft = ex;
+    int enemyRight = ex + 7;
+    int enemyTop = ey + 1;
+    int enemyBottom = ey + 4;
+
+    if (x < enemyRight && x > enemyLeft && y < enemyBottom && y > enemyTop)
+    {
+        return true;
+    }
+    return false;
 }
 // ======================================================= coin functions ============================================================
 void movecoin()
