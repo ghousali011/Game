@@ -23,7 +23,9 @@ bool coinCollision();
 
 // ========== firing functions =========
 void fire();
-void printBullet(int x, int y);
+void printBullet(int x, int y, char symbol);
+void fireenemybullets();
+bool bulletCollisionwithplayer(int ex, int ey, int x, int y);
 void eraseBullet(int x, int y);
 bool bulletCollisionwithenemy(int ex, int ey, int x, int y);
 
@@ -65,7 +67,7 @@ int coinFrameIndex = 0;
 unsigned int lastCoinFrameTime = 0;
 const unsigned int coinFrameDelay = 120;
 // --------------- firing varibles --------------------
-int bullets[2][100] = {INT_MIN};
+int bullets[2][100], enemybullets[2][100], enemyfirecontrol = 0;
 
 // ========(++++++++++ Main Calling +++++++++++)=======
 int main()
@@ -75,6 +77,13 @@ int main()
     setcolor(headingcolor);
     ex2 = width - 8;     // initializing 2nd enemy as width is not measured above
     ex3 = width / 2 - 5; // initializing 3rd enemy as width is not measured above
+    for (int i = 0; i < 100; i++)
+    {
+        enemybullets[0][i] = INT_MIN;
+        enemybullets[1][i] = INT_MIN;
+        bullets[0][i] = INT_MIN;
+        bullets[1][i] = INT_MIN;
+    }
     printMaze();
     Menu();
     move(); // enemy is also moving inside move
@@ -347,6 +356,7 @@ void move_enemy()
         Sleep(1000);
         system("cls");
         setcolor("07");
+        showCursor();
         exit(0);
     }
     else if (enemy1Health <= 0 && enemy2Health <= 0 && enemy3Health == 5 && level == 2)
@@ -539,6 +549,7 @@ void move()
                 setcolor("04");
                 Gameover();
                 setcolor("07");
+                showCursor();
                 exit(0);
             }
         }
@@ -577,16 +588,47 @@ void move()
                 {
                     bullets[0][i] = px + 7;
                     bullets[1][i] = py - 9;
-                    printBullet(bullets[0][i], bullets[1][i]);
+                    printBullet(bullets[0][i], bullets[1][i], '.');
                     break;
                 }
             }
         }
+        if (enemyfirecontrol >= 10)
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                if (enemybullets[0][i] == INT_MIN)
+                {
+                    if (enemy1Health > 0)
+                    {
+                        enemybullets[0][i] = ex1 + 3;
+                        enemybullets[1][i] = ey1 + 3;
+                        printBullet(enemybullets[0][i], enemybullets[1][i], '|');
+                    }
+                    if (enemy2Health > 0 && (level == 2 || level == 3))
+                    {
+                        enemybullets[0][i + 1] = ex2 + 3;
+                        enemybullets[1][i + 1] = ey2 + 3;
+                        printBullet(enemybullets[0][i + 1], enemybullets[1][i + 1], '|');
+                    }
+                    if (enemy3Health > 0 && level == 3)
+                    {
+                        enemybullets[0][i + 2] = ex3 + 3;
+                        enemybullets[1][i + 2] = ey3 + 3;
+                        printBullet(enemybullets[0][i + 2], enemybullets[1][i + 2], '|');
+                    }
+                    break;
+                }
+            }
+            enemyfirecontrol = 0;
+        }
         if (GetTickCount() - lastEnemyMove >= enemyDelay)
         {
+            fire();
             move_enemy();
             movecoin();
             fire();
+            fireenemybullets();
             if (playerCollision(ex1, ey1) || playerCollision(ex2, ey2) || playerCollision(ex3, ey3))
             {
                 setcolor(headingcolor);
@@ -608,6 +650,7 @@ void move()
     }
 }
 // ===================================================== firing ======================================================================
+// ------------ player firing ---------------------
 void fire()
 {
     for (int i = 0; i < 100; i++)
@@ -661,14 +704,14 @@ void fire()
             i--;
             continue;
         }
-        printBullet(bullets[0][i], bullets[1][i]);
+        printBullet(bullets[0][i], bullets[1][i], '.');
     }
 }
 // ---- print bullet ---------
-void printBullet(int x, int y)
+void printBullet(int x, int y, char symbol)
 {
     gotoxy(x, y);
-    cout << ".";
+    cout << symbol;
 }
 // ---------- erase bullet -----------
 void eraseBullet(int x, int y)
@@ -690,6 +733,62 @@ bool bulletCollisionwithenemy(int ex, int ey, int x, int y)
         return true;
     }
     return false;
+}
+// --------------- checking bullet collision with player -------------------
+bool bulletCollisionwithplayer(int px, int py, int x, int y)
+{
+    if (x == INT_MIN || y == INT_MIN)
+        return false;
+
+    int playerLeft = px;
+    int playerRight = px + 12;
+    int playerTop = py - 8;
+    int playerBottom = py - 5;
+
+    return (x >= playerLeft && x <= playerRight &&
+            y >= playerTop && y <= playerBottom);
+}
+
+//-------------------- enemy firing ---------------
+void fireenemybullets()
+{
+    for (int i = 0; i < 100; i++)
+    {
+        if (enemybullets[0][i] == INT_MIN)
+            continue;
+        eraseBullet(enemybullets[0][i], enemybullets[1][i]);
+        enemybullets[1][i]++;
+        if (bulletCollisionwithplayer(px, py, enemybullets[0][i], enemybullets[1][i]))
+        {
+            setcolor(headingcolor);
+            health -= 10;
+            gotoxy(12, 1);
+            cout << health << " ";
+            enemybullets[1][i] = height - 2;
+            if (health <= 0)
+            {
+                setcolor("04");
+                Gameover();
+                setcolor("07");
+                showCursor();
+                exit(0);
+            }
+        }
+        if (enemybullets[1][i] >= height - 2)
+        {
+            for (int j = i; j < 99; j++)
+            {
+                enemybullets[0][j] = enemybullets[0][j + 1];
+                enemybullets[1][j] = enemybullets[1][j + 1];
+            }
+            enemybullets[0][99] = INT_MIN;
+            enemybullets[1][99] = INT_MIN;
+            i--;
+            continue;
+        }
+        printBullet(enemybullets[0][i], enemybullets[1][i], '|');
+    }
+    enemyfirecontrol++;
 }
 // ======================================================= coin functions ============================================================
 void movecoin()
