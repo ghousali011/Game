@@ -7,10 +7,10 @@
 #include <fstream>
 using namespace std;
 
-void moveok(int width, int height, int &px, int &py, string headingcolor, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int enemybullets[2][100], bool &playerInvincible, int &score, string coincolor, int enemyfirecontrol, int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int health, int coinFrameDelay, CHAR_INFO savedBuffer[][25], string filename);
+void moveok(int width, int height, int &px, int &py, string headingcolor, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int enemybullets[2][100], bool &playerInvincible, int &score, string coincolor, int enemyfirecontrol, int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int health, int coinFrameDelay, CHAR_INFO savedBuffer[][25], string filename, int &highestScore);
 // === menu functions ===
 void Menu(int width, int height);
-void printMaze(int width, int height, int score, int level, int health);
+void printMaze(int width, int height, int score, int level, int health, int highestScore);
 void Gameover(int width, int height);
 
 // === pause function ===
@@ -19,14 +19,14 @@ void saveRegion(int x, int y, int width, int height, CHAR_INFO savedBuffer[][25]
 void restoreRegion(int x, int y, int width, int height, CHAR_INFO savedBuffer[][25]);
 
 // === coin functions ===
-void movecoin(int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, const vector<string> &coinFrames, int &score, int px, int py, int width, int height, string coincolor, string headingcolor, string enemycolor, int coinFrameDelay, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int enemy1health, int enemy2health, int enemy3health);
+void movecoin(int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, const vector<string> &coinFrames, int &score, int px, int py, int width, int height, string coincolor, string headingcolor, string enemycolor, int coinFrameDelay, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int enemy1health, int enemy2health, int enemy3health, int &highestScore);
 bool coinCollision(int cx, int cy, int px, int py);
 
 // ========== firing functions =========
 void fire(int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int bullets[2][100]);
 void printBullet(int x, int y, char symbol);
 void eraseBullet(int x, int y);
-void fireenemybullets(int &enemyfirecontrol, int height, int &health, int &px, int &py, string headingcolor, string enemycolor, int enemybullets[2][100], int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int width, int level, int score, int enemy1health, int enemy2health, int enemy3health);
+void fireenemybullets(int &enemyfirecontrol, int height, int &health, int &px, int &py, string headingcolor, string enemycolor, int enemybullets[2][100], int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int width, int level, int score, int enemy1health, int enemy2health, int enemy3health, int &highestScore);
 bool bulletCollisionwithplayer(int ex, int ey, int x, int y);
 void eraseBullet(int x, int y);
 bool bulletCollisionwithenemy(int ex, int ey, int x, int y);
@@ -36,10 +36,10 @@ void printPlayer(int px, int py, string enemycolor, string playercolor);
 void erasePlayer(int px, int py);
 bool playerCollision(int ex, int ey, int px, int py);
 void handlePlayerMovementSlow(DWORD &lastMoveTime, int delay, int width, int height, int &px, int &py);
-void respawnPlayerWithDelay(int delayMs, int width, int height, int &px, int &py, bool &playerInvincible, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int &score, int coinFrameDelay, string coincolor, string headingcolor, int &health, int enemyfirecontrol, int enemybullets[2][100]);
+void respawnPlayerWithDelay(int delayMs, int width, int height, int &px, int &py, bool &playerInvincible, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int &score, int coinFrameDelay, string coincolor, string headingcolor, int &health, int enemyfirecontrol, int enemybullets[2][100], int &highestScore);
 
 // === Enemy Functions ===
-void move_enemy(int width, int height, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, string headingcolor, string enemycolor, int &score, int &health, int &px, int &py, string filename, int bullets[2][100], int enemybullets[2][100]);
+void move_enemy(int width, int height, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, string headingcolor, string enemycolor, int &score, int &health, int &px, int &py, string filename, int bullets[2][100], int enemybullets[2][100], int &highestScore);
 void spawnEnemy2(int &ex2, int &ey2, bool &enemy2movedown, bool &enemy2moveright, bool &e2first);
 void printEnemy(int ex, int ey);
 void EraseEnemy(int ex, int ey);
@@ -49,8 +49,8 @@ void moveEnemy3(int width, int height, int &ex3, int &ey3, bool &enemy3movedown,
 
 // === file handling functions ===
 bool loadCoinFramesFromFile(string filename, vector<string> &coinFrames);
-bool saveSettingsToFile(string filename, int pX, int pY, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int score, int enemy1health, int enemy2health, int enemy3health);
-bool loadSettingsFromFile(string filename, int &pX, int &pY, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &level, int &health, int &score, int &enemy1health, int &enemy2health, int &enemy3health);
+bool saveSettingsToFile(string filename, int pX, int pY, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int score, int enemy1health, int enemy2health, int enemy3health, int highestScore);
+bool loadSettingsFromFile(string filename, int &pX, int &pY, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &level, int &health, int &score, int &enemy1health, int &enemy2health, int &enemy3health, int &highestScore);
 
 // === Default functoins ===
 void gotoxy(int x, int y);
@@ -81,7 +81,7 @@ int main()
     int ex1 = 1, ey1 = 4, ex2 = width - 8, ey2 = 0, ex3 = width / 2 - 5, ey3 = 0, enemy1Health = 5, enemy2Health = 5, enemy3Health = 5;
     bool enemy1moveright = true, e2first = true, e3first = true, enemy2moveright = false, enemy3moveright = true, enemy2movedown = false, enemy3movedown = true, playerInvincible = false;
     // -------- coin veriables -------------
-    int cx = 0, cy = 4, score = 0;
+    int cx = 0, cy = 4, score = 0, highestScore = 0;
     vector<string> coinFrames;
     loadCoinFramesFromFile(filename, coinFrames);
     int coinFrameIndex = 0;
@@ -100,9 +100,17 @@ int main()
         bullets[0][i] = INT_MIN;
         bullets[1][i] = INT_MIN;
     }
-    printMaze(width, height, score, level, health);
+    printMaze(width, height, score, level, health, highestScore);
     while (true)
     {
+        gotoxy(3, 1);
+        cout << "              ";
+        gotoxy(3, 2);
+        cout << "                  ";
+        gotoxy(width - 15, 1);
+        cout << "          ";
+        gotoxy(width - 15, 2);
+        cout << "          ";
         gotoxy(width / 2 - 7, height / 2 - 1);
         cout << "1. Start New Game";
         gotoxy(width / 2 - 7, height / 2);
@@ -118,13 +126,15 @@ int main()
         if (choice == 1)
         {
             system("cls");
-            printMaze(width, height, score, level, health);
+            loadSettingsFromFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
+            ex1 = 1, ey1 = 4, ex2 = width - 8, ey2 = 0, ex3 = width / 2 - 5, ey3 = 0, px = width / 2, py = height - 3, enemy1Health = 5, enemy2Health = 5, enemy3Health = 5, score = 0, level = 1, health = 100;
+            printMaze(width, height, score, level, health, highestScore);
         }
         else if (choice == 2)
         {
             system("cls");
-            loadSettingsFromFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health);
-            printMaze(width, height, score, level, health);
+            loadSettingsFromFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
+            printMaze(width, height, score, level, health, highestScore);
         }
         else if (choice == 3)
         {
@@ -134,23 +144,42 @@ int main()
                 cout << "                                        ";
             }
             setcolor("0B");
-            gotoxy(width / 2 - 30, height / 2 - 1);
-            cout << "1. Instructions: Use arrow keys to move up, down , left and right";
-            gotoxy(width / 2 - 30, height / 2);
-            cout << "2. Spacebar to shoot, and 'esc' to quit.";
-            gotoxy(width / 2 - 30, height / 2 + 1);
-            cout << "3. Collect coins to increase your score. Avoid enemy fire and collisions.";
-            gotoxy(width / 2 - 30, height / 2 + 2);
-            cout << "4. Defeat all enemies to progress through levels. Good luck!";
-            gotoxy(width / 2 - 20, height - 2);
+            gotoxy(width / 2 - 22, height / 2 - 5);
+            cout << "===========================================";
+            gotoxy(width / 2 - 5, height / 2 - 4);
+            cout << "CONTROLS:";
+            gotoxy(width / 2 - 22, height / 2 - 3);
+            cout << "===========================================";
+            gotoxy(width / 2 - 22, height / 2 - 2);
+            cout << "- Arrow Keys : Move (Up, Down, Left, Right)";
+            gotoxy(width / 2 - 22, height / 2 - 1);
+            cout << "- Spacebar   : Shoot";
+            gotoxy(width / 2 - 22, height / 2);
+            cout << "- ESC        : Quit Game";
+
+            gotoxy(width / 2 - 22, height / 2 + 2);
+            cout << "===========================================";
+            gotoxy(width / 2 - 5, height / 2 + 3);
+            cout << "GAMEPLAY:";
+            gotoxy(width / 2 - 22, height / 2 + 4);
+            cout << "===========================================";
+            gotoxy(width / 2 - 22, height / 2 + 5);
+            cout << "- Collect coins to increase score";
+            gotoxy(width / 2 - 22, height / 2 + 6);
+            cout << "- Avoid enemy fire and collisions";
+            gotoxy(width / 2 - 22, height / 2 + 7);
+            cout << "- Defeat all enemies to advance levels";
+
+            gotoxy(width / 2 - 15, height - 2);
             cout << "Press any key to continue...";
+
             getch();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 16; i++)
             {
-                gotoxy(width / 2 - 30, height / 2 - 1 + i);
+                gotoxy(width / 2 - 22, height / 2 - 5 + i);
                 cout << "                                                                       ";
             }
-            gotoxy(width / 2 - 20, height - 2);
+            gotoxy(width / 2 - 15, height - 2);
             cout << "                              ";
             setcolor(headingcolor);
             continue;
@@ -158,7 +187,7 @@ int main()
         else
         {
             system("cls");
-            printMaze(width, height, score, level, health);
+            printMaze(width, height, score, level, health, highestScore);
             setcolor("04");
             Gameover(width, height);
             setcolor("07");
@@ -169,13 +198,13 @@ int main()
     }
     Menu(width, height);
     // ---- all movement and game logic in one function ----
-    moveok(width, height, px, py, headingcolor, enemycolor, playercolor, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, bullets, enemybullets, playerInvincible, score, coincolor, enemyfirecontrol, cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, health, coinFrameDelay, savedBuffer, filename);
+    moveok(width, height, px, py, headingcolor, enemycolor, playercolor, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, bullets, enemybullets, playerInvincible, score, coincolor, enemyfirecontrol, cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, health, coinFrameDelay, savedBuffer, filename, highestScore);
     return 0;
 }
 
 // ============================================================ header functions =================================================================================================
 // --------------- maze printing -------------------
-void printMaze(int width, int height, int score, int level, int health)
+void printMaze(int width, int height, int score, int level, int health, int highestScore)
 {
     system("cls");
     int primarywidth = 0;
@@ -238,6 +267,8 @@ void printMaze(int width, int height, int score, int level, int health)
     cout << "Space Xtrive";
     gotoxy(width - 15, 1);
     cout << "Score : " << score;
+    gotoxy(3, 2);
+    cout << "High Score : " << highestScore;
     gotoxy(width - 15, 2);
     cout << "Level : " << level;
     gotoxy(3, 1);
@@ -438,17 +469,19 @@ void moveEnemy3(int width, int height, int &ex3, int &ey3, bool &enemy3movedown,
     }
 }
 // --------------- moving all enemies in one function -----------------------
-void move_enemy(int width, int height, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, string headingcolor, string enemycolor, int &score, int &health, int &px, int &py, string filename, int bullets[2][100], int enemybullets[2][100])
+void move_enemy(int width, int height, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, string headingcolor, string enemycolor, int &score, int &health, int &px, int &py, string filename, int bullets[2][100], int enemybullets[2][100], int &highestScore)
 {
     if (enemy1Health <= 0 && enemy2Health <= 0 && enemy3Health <= 0)
     {
         system("cls");
         setcolor("02");
-        printMaze(width, height, score, level, health);
+        printMaze(width, height, score, level, health, highestScore);
         setcolor("04");
         gotoxy(width / 2 - 6, height / 2 - 1);
         cout << "You win.";
         Sleep(1000);
+        int ex1 = 1, ey1 = 4, ex2 = width - 8, ey2 = 0, ex3 = width / 2 - 5, ey3 = 0, px = width / 2, py = height - 3, enemy1Health = 5, enemy2Health = 5, enemy3Health = 5, score = 0, level = 1, health = 100;
+        saveSettingsToFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
         system("cls");
         setcolor("07");
         showCursor();
@@ -457,10 +490,13 @@ void move_enemy(int width, int height, int &ex1, int &ey1, int &ex2, int &ey2, i
     else if (enemy1Health <= 0 && enemy2Health <= 0 && enemy3Health == 5 && level == 2)
     {
         level = 3;
-        saveSettingsToFile(filename, width / 2, height - 3, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health);
+        saveSettingsToFile(filename, width / 2, height - 3, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
         system("cls");
         setcolor(headingcolor);
-        printMaze(width, height, score, level, health);
+        score += 20;
+        if (score > highestScore)
+            highestScore = score;
+        printMaze(width, height, score, level, health, highestScore);
         setcolor("0A");
         px = width / 2;
         py = height - 3;
@@ -487,10 +523,13 @@ void move_enemy(int width, int height, int &ex1, int &ey1, int &ex2, int &ey2, i
     else if (enemy1Health <= 0 && enemy2Health == 5 && enemy3Health == 5 && level == 1)
     {
         level = 2;
-        saveSettingsToFile(filename, width / 2, height - 3, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health);
+        saveSettingsToFile(filename, width / 2, height - 3, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
         system("cls");
         setcolor(headingcolor);
-        printMaze(width, height, score, level, health);
+        score += 10;
+        if (score > highestScore)
+            highestScore = score;
+        printMaze(width, height, score, level, health, highestScore);
         setcolor("0A");
         px = width / 2;
         py = height - 3;
@@ -618,7 +657,7 @@ bool playerCollision(int ex, int ey, int px, int py)
     return false;
 }
 // ---------------- respawn player afer collision with enemy -------------
-void respawnPlayerWithDelay(int delayMs, int width, int height, int &px, int &py, bool &playerInvincible, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int &score, int coinFrameDelay, string coincolor, string headingcolor, int &health, int enemyfirecontrol, int enemybullets[2][100])
+void respawnPlayerWithDelay(int delayMs, int width, int height, int &px, int &py, bool &playerInvincible, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int &score, int coinFrameDelay, string coincolor, string headingcolor, int &health, int enemyfirecontrol, int enemybullets[2][100], int &highestScore)
 {
     playerInvincible = true;
 
@@ -632,10 +671,10 @@ void respawnPlayerWithDelay(int delayMs, int width, int height, int &px, int &py
 
     while (GetTickCount() - start < delayMs)
     {
-        move_enemy(width, height, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, enemycolor, playercolor, score, health, px, py, "game.txt", bullets, enemybullets);
-        movecoin(cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, score, px, py, width, height, coincolor, headingcolor, enemycolor, coinFrameDelay, ex1, ey1, ex2, ey2, ex3, ey3, level, health, enemy1Health, enemy2Health, enemy3Health);
+        move_enemy(width, height, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, enemycolor, playercolor, score, health, px, py, "game.txt", bullets, enemybullets, highestScore);
+        movecoin(cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, score, px, py, width, height, coincolor, headingcolor, enemycolor, coinFrameDelay, ex1, ey1, ex2, ey2, ex3, ey3, level, health, enemy1Health, enemy2Health, enemy3Health, highestScore);
         fire(ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, bullets);
-        fireenemybullets(enemyfirecontrol, height, health, px, py, headingcolor, enemycolor, enemybullets, ex1, ey1, ex2, ey2, ex3, ey3, width, level, score, enemy1Health, enemy2Health, enemy3Health);
+        fireenemybullets(enemyfirecontrol, height, health, px, py, headingcolor, enemycolor, enemybullets, ex1, ey1, ex2, ey2, ex3, ey3, width, level, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
         handlePlayerMovementSlow(lastMoveTime, moveDelay, width, height, px, py);
 
         if (((GetTickCount() / 200) % 2) == 0)
@@ -683,7 +722,7 @@ void handlePlayerMovementSlow(DWORD &lastMoveTime, int delay, int width, int hei
 }
 
 // ======================================(+++++++++++++++++++++ over all movement ++++++++++++++++++++++)============================================================
-void moveok(int width, int height, int &px, int &py, string headingcolor, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int enemybullets[2][100], bool &playerInvincible, int &score, string coincolor, int enemyfirecontrol, int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int health, int coinFrameDelay, CHAR_INFO savedBuffer[][25], string filename)
+void moveok(int width, int height, int &px, int &py, string headingcolor, string enemycolor, string playercolor, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &enemy1Health, int &enemy2Health, int &enemy3Health, int &level, bool &level2reached, bool &level3reached, bool &enemy1moveright, bool &e2first, bool &enemy2movedown, bool &enemy2moveright, bool &e3first, bool &enemy3movedown, bool &enemy3moveright, int bullets[2][100], int enemybullets[2][100], bool &playerInvincible, int &score, string coincolor, int enemyfirecontrol, int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, vector<string> &coinFrames, int health, int coinFrameDelay, CHAR_INFO savedBuffer[][25], string filename, int &highestScore)
 {
     printPlayer(px, py, enemycolor, playercolor);
 
@@ -705,7 +744,7 @@ void moveok(int width, int height, int &px, int &py, string headingcolor, string
                 Gameover(width, height);
                 setcolor("07");
                 showCursor();
-                saveSettingsToFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health);
+                saveSettingsToFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
                 exit(0);
             }
         }
@@ -791,15 +830,15 @@ void moveok(int width, int height, int &px, int &py, string headingcolor, string
         if (GetTickCount() - lastEnemyMove >= enemyDelay)
         {
             fire(ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, bullets);
-            move_enemy(width, height, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, headingcolor, enemycolor, score, health, px, py, filename, bullets, enemybullets);
-            movecoin(cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, score, px, py, width, height, coincolor, headingcolor, enemycolor, coinFrameDelay, ex1, ey1, ex2, ey2, ex3, ey3, level, health, enemy1Health, enemy2Health, enemy3Health);
+            move_enemy(width, height, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, headingcolor, enemycolor, score, health, px, py, filename, bullets, enemybullets, highestScore);
+            movecoin(cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, score, px, py, width, height, coincolor, headingcolor, enemycolor, coinFrameDelay, ex1, ey1, ex2, ey2, ex3, ey3, level, health, enemy1Health, enemy2Health, enemy3Health, highestScore);
             fire(ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, bullets);
-            fireenemybullets(enemyfirecontrol, height, health, px, py, headingcolor, enemycolor, enemybullets, ex1, ey1, ex2, ey2, ex3, ey3, width, level, score, enemy1Health, enemy2Health, enemy3Health);
+            fireenemybullets(enemyfirecontrol, height, health, px, py, headingcolor, enemycolor, enemybullets, ex1, ey1, ex2, ey2, ex3, ey3, width, level, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
             if (playerCollision(ex1, ey1, px, py) || playerCollision(ex2, ey2, px, py) || playerCollision(ex3, ey3, px, py))
             {
                 setcolor(headingcolor);
                 health -= 20;
-                saveSettingsToFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health);
+                saveSettingsToFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
                 gotoxy(12, 1);
                 cout << health << " ";
                 if (health <= 0)
@@ -807,11 +846,11 @@ void moveok(int width, int height, int &px, int &py, string headingcolor, string
                     setcolor("04");
                     Gameover(width, height);
                     setcolor("07");
-                    int ex1 = 1, ey1 = 4, ex2 = width - 8, ey2 = 0, ex3 = width / 2 - 5, ey3 = 0, px = width / 2, py = height - 3, enemy1Health = 5, enemy2Health = 5, enemy3Health = 5;
-                    saveSettingsToFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health);
+                    int ex1 = 1, ey1 = 4, ex2 = width - 8, ey2 = 0, ex3 = width / 2 - 5, ey3 = 0, px = width / 2, py = height - 3, enemy1Health = 5, enemy2Health = 5, enemy3Health = 5, score = 0, level = 1, health = 100;
+                    saveSettingsToFile(filename, px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1Health, enemy2Health, enemy3Health, highestScore);
                     exit(0);
                 }
-                respawnPlayerWithDelay(3000, width, height, px, py, playerInvincible, enemycolor, playercolor, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, bullets, cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, score, coinFrameDelay, coincolor, headingcolor, health, enemyfirecontrol, enemybullets);
+                respawnPlayerWithDelay(3000, width, height, px, py, playerInvincible, enemycolor, playercolor, ex1, ey1, ex2, ey2, ex3, ey3, enemy1Health, enemy2Health, enemy3Health, level, level2reached, level3reached, enemy1moveright, e2first, enemy2movedown, enemy2moveright, e3first, enemy3movedown, enemy3moveright, bullets, cx, cy, coinFrameIndex, lastCoinFrameTime, coinFrames, score, coinFrameDelay, coincolor, headingcolor, health, enemyfirecontrol, enemybullets, highestScore);
             }
             lastEnemyMove = GetTickCount();
         }
@@ -919,7 +958,7 @@ bool bulletCollisionwithplayer(int px, int py, int x, int y)
 }
 
 //-------------------- enemy firing ---------------
-void fireenemybullets(int &enemyfirecontrol, int height, int &health, int &px, int &py, string headingcolor, string enemycolor, int enemybullets[2][100], int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int width, int level, int score, int enemy1health, int enemy2health, int enemy3health)
+void fireenemybullets(int &enemyfirecontrol, int height, int &health, int &px, int &py, string headingcolor, string enemycolor, int enemybullets[2][100], int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int width, int level, int score, int enemy1health, int enemy2health, int enemy3health, int &highestScore)
 {
     for (int i = 0; i < 100; i++)
     {
@@ -931,7 +970,7 @@ void fireenemybullets(int &enemyfirecontrol, int height, int &health, int &px, i
         {
             setcolor(headingcolor);
             health -= 10;
-            saveSettingsToFile("game.txt", px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1health, enemy2health, enemy3health);
+            saveSettingsToFile("game.txt", px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1health, enemy2health, enemy3health, highestScore);
             gotoxy(12, 1);
             cout << health << " ";
             enemybullets[1][i] = height - 2;
@@ -942,7 +981,7 @@ void fireenemybullets(int &enemyfirecontrol, int height, int &health, int &px, i
                 setcolor("07");
                 showCursor();
                 int ex1 = 1, ey1 = 4, ex2 = width - 8, ey2 = 0, ex3 = width / 2 - 5, ey3 = 0, px = width / 2, py = height - 3, enemy1Health = 5, enemy2Health = 5, enemy3Health = 5;
-                saveSettingsToFile("game.txt", px, py, ex1, ey1, ex2, ey2, ex3, ey3, 1, 100, 0, enemy1Health, enemy2Health, enemy3Health);
+                saveSettingsToFile("game.txt", px, py, ex1, ey1, ex2, ey2, ex3, ey3, 1, 100, 0, enemy1Health, enemy2Health, enemy3Health, highestScore);
                 exit(0);
             }
         }
@@ -963,7 +1002,7 @@ void fireenemybullets(int &enemyfirecontrol, int height, int &health, int &px, i
     enemyfirecontrol++;
 }
 // ======================================================= coin functions ============================================================
-void movecoin(int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, const vector<string> &coinFrames, int &score, int px, int py, int width, int height, string coincolor, string headingcolor, string enemycolor, int coinFrameDelay, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int enemy1health, int enemy2health, int enemy3health)
+void movecoin(int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrameTime, const vector<string> &coinFrames, int &score, int px, int py, int width, int height, string coincolor, string headingcolor, string enemycolor, int coinFrameDelay, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int enemy1health, int enemy2health, int enemy3health, int &highestScore)
 {
     const int frameCount = (int)coinFrames.size();
     if (frameCount <= 0)
@@ -1027,11 +1066,17 @@ void movecoin(int &cx, int &cy, int &coinFrameIndex, unsigned int &lastCoinFrame
         cy = 4;
         coinFrameIndex = 0;
         lastCoinFrameTime = GetTickCount();
-        gotoxy(width - 7, 1);
         setcolor(headingcolor);
+        gotoxy(width - 7, 1);
         cout << score;
+        if (score > highestScore)
+        {
+            highestScore = score;
+            gotoxy(16, 2);
+            cout << highestScore;
+        }
         setcolor(enemycolor);
-        saveSettingsToFile("game.txt", px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1health, enemy2health, enemy3health);
+        saveSettingsToFile("game.txt", px, py, ex1, ey1, ex2, ey2, ex3, ey3, level, health, score, enemy1health, enemy2health, enemy3health, highestScore);
     }
 }
 
@@ -1179,7 +1224,7 @@ bool loadCoinFramesFromFile(string filename, vector<string> &coinFrames)
 }
 
 // ------------------------------- saving and loading settings from file --------------------------------
-bool loadSettingsFromFile(string filename, int &pX, int &pY, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &level, int &health, int &score, int &enemy1health, int &enemy2health, int &enemy3health)
+bool loadSettingsFromFile(string filename, int &pX, int &pY, int &ex1, int &ey1, int &ex2, int &ey2, int &ex3, int &ey3, int &level, int &health, int &score, int &enemy1health, int &enemy2health, int &enemy3health, int &highestScore)
 {
     string line;
     ifstream file(filename);
@@ -1187,12 +1232,14 @@ bool loadSettingsFromFile(string filename, int &pX, int &pY, int &ex1, int &ey1,
     {
         return false;
     }
-    else if (file.is_open())
+    else
     {
-        for (int i = 1; i < 11; i++)
+        for (int i = 1; i < 12; i++)
         {
             getline(file, line);
             if (i == 10)
+                highestScore = stoi(line);
+            else if (i == 11)
                 break;
         }
     }
@@ -1200,7 +1247,7 @@ bool loadSettingsFromFile(string filename, int &pX, int &pY, int &ex1, int &ey1,
 
     if (line.empty())
         return false;
-    cout << line << endl;
+    // cout << line << endl;
     pX = stoi(getFilePart(line, 0));
     pY = stoi(getFilePart(line, 1));
     ex1 = stoi(getFilePart(line, 2));
@@ -1218,7 +1265,7 @@ bool loadSettingsFromFile(string filename, int &pX, int &pY, int &ex1, int &ey1,
     return true;
 }
 
-bool saveSettingsToFile(string filename, int pX, int pY, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int score, int enemy1health, int enemy2health, int enemy3health)
+bool saveSettingsToFile(string filename, int pX, int pY, int ex1, int ey1, int ex2, int ey2, int ex3, int ey3, int level, int health, int score, int enemy1health, int enemy2health, int enemy3health, int highestScore)
 {
     ifstream file(filename);
     if (!file)
@@ -1241,6 +1288,7 @@ bool saveSettingsToFile(string filename, int pX, int pY, int ex1, int ey1, int e
     {
         outfile << oldData[i] << "\n";
     }
+    outfile << highestScore << "\n";
     outfile << pX << "," << pY << ","
             << ex1 << "," << ey1 << ","
             << ex2 << "," << ey2 << ","
